@@ -1,0 +1,46 @@
+﻿<Window x:Class="Testovoe.View.WorkWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Testovoe.View"
+        mc:Ignorable="d"
+              Title="MainWindow" Height="300" Width="640">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Margin="10">
+            <StackPanel Background="#FF313131">
+                <Label Margin="0,6,0,6" Content="Файл" HorizontalAlignment="Left"/>
+                <TextBlock Text="Source" Foreground="White" Margin="7,6,0,6"/>
+                <Button Content="Выбрать файл" Width="100"  Margin="7,6,0,6" />
+            </StackPanel>
+
+            <StackPanel Margin="0,10,0,0" Background="#FF313131">
+                <Label Margin="0,6,0,6" Content="Прочитать файл" HorizontalAlignment="Left"/>
+                <TextBlock Text="Source" MinHeight="50" Foreground="White" Margin="7,6,0,6" TextWrapping="Wrap"/>
+                <Button Command="{Binding ReadDataFromFile}" Content="Прочитать файл" Width="100"  Margin="7,6,0,6" />
+                <ProgressBar Value="50" Background="#FF034B4B"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="7*"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <DataGrid AutoGenerateColumns="True" SelectionMode="Single" IsReadOnly="True"/>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                <Button Content="Прочитать данные с БД" Margin="0,6,10,6" Height="23" Width="150"/>
+                <Button Content="Записать данные в БД" Margin="0,6,10,6" Height="23" Width="150"/>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Window>
+
