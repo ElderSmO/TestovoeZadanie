@@ -15,13 +15,13 @@
         <StackPanel Margin="10">
             <StackPanel Background="#FF313131">
                 <Label Margin="0,6,0,6" Content="Файл" HorizontalAlignment="Left"/>
-                <TextBlock Text="Source" Foreground="White" Margin="7,6,0,6"/>
-                <Button Content="Выбрать файл" Width="100"  Margin="7,6,0,6" />
+                <TextBlock Text="{Binding FileSource}" Foreground="White" Margin="7,6,0,6"/>
+                <Button Command="{Binding SelectFile}" Content="Выбрать файл" Width="100"  Margin="7,6,0,6" />
             </StackPanel>
 
             <StackPanel Margin="0,10,0,0" Background="#FF313131">
                 <Label Margin="0,6,0,6" Content="Прочитать файл" HorizontalAlignment="Left"/>
-                <TextBlock Text="Source" MinHeight="50" Foreground="White" Margin="7,6,0,6" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding FileText}" MinHeight="50" Foreground="White" Margin="7,6,0,6" TextWrapping="Wrap"/>
                 <Button Command="{Binding ReadDataFromFile}" Content="Прочитать файл" Width="100"  Margin="7,6,0,6" />
                 <ProgressBar Value="50" Background="#FF034B4B"/>
             </StackPanel>
@@ -37,7 +37,7 @@
 
             <StackPanel Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                 <Button Content="Прочитать данные с БД" Margin="0,6,10,6" Height="23" Width="150"/>
-                <Button Content="Записать данные в БД" Margin="0,6,10,6" Height="23" Width="150"/>
+                <Button Command="{Binding WriteDataToDb}" Content="Записать данные в БД" Margin="0,6,10,6" Height="23" Width="150"/>
             </StackPanel>
         </Grid>
 
