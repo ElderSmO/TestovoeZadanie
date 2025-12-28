@@ -5,7 +5,9 @@ using System.Linq;
 using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using Testovoe.Model;
+using Testovoe.Services;
 
 namespace Testovoe.DataBase
 {
@@ -15,12 +17,20 @@ namespace Testovoe.DataBase
 
         public ApplicationContext()
         {
-            Database.EnsureCreated();
+            try
+            {
+                Database.EnsureCreated();
+            }
+            catch { MessageBox.Show("Ошибка подключения к бд, перезапустите приложение и проверьте параметры подключения!"); }
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=testBD;Username=postgres;Password=3894");
+            ConnectionParamModel savedConSettings = FileService.GetConnectionSetting();
+            optionsBuilder.UseNpgsql($"Host={savedConSettings.Host};Port={savedConSettings.Port};" +
+                $"Database={savedConSettings.DataBase};Username={savedConSettings.Username};Password={savedConSettings.Password}");
         }
+
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

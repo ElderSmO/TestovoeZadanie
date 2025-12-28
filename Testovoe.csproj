@@ -83,6 +83,9 @@
     <Reference Include="Microsoft.Extensions.Primitives, Version=3.1.18.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Primitives.3.1.18\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Npgsql, Version=4.1.9.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
       <HintPath>packages\Npgsql.4.1.9\lib\net461\Npgsql.dll</HintPath>
     </Reference>
@@ -144,6 +147,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\ConnectionParamModel.cs" />
     <Compile Include="Services\EventManager.cs" />
     <Compile Include="Services\FileService.cs" />
     <Compile Include="App.xaml.cs">
@@ -153,7 +157,11 @@
     <Compile Include="CommandsMVVM.cs" />
     <Compile Include="DataBase\ApplicationContext.cs" />
     <Compile Include="DataBase\DBManager.cs" />
+    <Compile Include="ViewModel\StartAppWinViewModel.cs" />
     <Compile Include="ViewModel\WorkWinViewModel.cs" />
+    <Compile Include="View\StartAppWin.xaml.cs">
+      <DependentUpon>StartAppWin.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\WorkWin.xaml.cs">
       <DependentUpon>WorkWin.xaml</DependentUpon>
     </Compile>
@@ -164,6 +172,10 @@
     <Page Include="themes\Core.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\StartAppWin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\WorkWin.xaml">
       <SubType>Designer</SubType>

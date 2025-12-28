@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,8 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Shapes;
-using static System.Net.Mime.MediaTypeNames;
+using System.Xml.Serialization;
+using Testovoe.Model;
 
 namespace Testovoe.Services
 {
@@ -17,7 +18,7 @@ namespace Testovoe.Services
     /// </summary>
     public static class FileService
     {
-
+        static string saveSettingSource = AppDomain.CurrentDomain.BaseDirectory;
         const string pattern = @"\b\d+\.\d+\b";
 
         static async Task<string> GetDataFromFile(string path)
@@ -43,18 +44,27 @@ namespace Testovoe.Services
         {
             EventManager.OnGetStateOperation(false);
             string text = await GetDataFromFile(path);
-            List<float> numbers = new List<float>();
             MatchCollection matches = Regex.Matches(text, pattern);
-            EventManager.OnGetMaxProgressValue(matches.Count);
-            foreach (Match match in matches)
+            if (matches.Count % 6 == 0)
             {
-                float number = float.Parse(match.Value, CultureInfo.InvariantCulture);
+                List<float> numbers = new List<float>();
+                EventManager.OnGetMaxProgressValue(matches.Count);
+                foreach (Match match in matches)
+                {
+                    float number = float.Parse(match.Value, CultureInfo.InvariantCulture);
                     Console.WriteLine(number);
                     numbers.Add(number);
                     EventManager.OnUpdateProgress();
+                }
+                EventManager.OnGetStateOperation(true);
+                return numbers;
             }
-            EventManager.OnGetStateOperation(true);
-            return numbers;
+            else {
+                     MessageBox.Show("Кол-во параметров в файле не кратно кол-ву столбцов",
+                              "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                EventManager.OnGetStateOperation(true);
+                return null;
+            }
         }
 
         /// <summary>
@@ -88,6 +98,36 @@ namespace Testovoe.Services
                 await fstream.WriteAsync(buffer, 0, buffer.Length);
                 Console.WriteLine("Текст записан в файл");
                 EventManager.OnGetStateOperation(true);
+            }
+        }
+
+
+        public static void SaveConnectionSetting(ConnectionParamModel model)
+        {
+            try
+            {
+                string jsonPatch = Path.Combine(saveSettingSource, "saveSettingSource");
+                string json = JsonConvert.SerializeObject(model);
+                File.WriteAllText(jsonPatch, json);
+            }
+            catch
+            {
+                MessageBox.Show("Ошибка сохранения настроек");
+            }
+        }
+        public static ConnectionParamModel GetConnectionSetting()
+        {
+            try
+            {
+                string jsonPatch = Path.Combine(saveSettingSource, "saveSettingSource");
+                string readJson = File.ReadAllText(jsonPatch);
+                ConnectionParamModel model = JsonConvert.DeserializeObject<ConnectionParamModel>(readJson);
+                return model;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка получения данных настроек соеденения  - {ex.Message}");
+                return default;
             }
         }
 

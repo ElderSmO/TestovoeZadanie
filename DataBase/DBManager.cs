@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Testovoe.Model;
 
 namespace Testovoe.DataBase
@@ -14,21 +15,25 @@ namespace Testovoe.DataBase
         /// <summary>
         /// Добавляет строку параметров в БД
         /// </summary>
-        public static void AddParametersData(List<Parameters> parameters)
+        public static async Task AddParametersData(List<Parameters> parameters)
         {
             using (ApplicationContext db = new ApplicationContext())
-            {
-                db.parameters.AddRange(parameters);
+            {  
+                await db.parameters.AddRangeAsync(parameters);
                 db.SaveChanges();
+                
             }
         }
 
-        public static void CleanTable()
+        public static async Task CleanTable()
         {
             using (ApplicationContext db = new ApplicationContext())
             {
-                db.Database.ExecuteSqlRaw("TRUNCATE TABLE parameters RESTART IDENTITY;");
-                db.SaveChanges();
+                await Task.Run(() =>
+                {
+                    db.RemoveRange(db.parameters);
+                    db.SaveChanges();
+                });
             }
         }
 

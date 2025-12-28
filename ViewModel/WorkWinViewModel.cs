@@ -18,13 +18,14 @@ namespace Testovoe.ViewModel
 {
     public class WorkWinViewModel : INotifyPropertyChanged
     {
-
+        const int columCount = 6;
         List<float> paramList;
         CommandsMVVM readDataFromFile;
         CommandsMVVM selectFile;
         CommandsMVVM getDataFromDb;
         CommandsMVVM writeDataToDb;
         CommandsMVVM generateFile;
+        CommandsMVVM deleteAllRowsFromDB;
 
         private double progressBarValue;
         private string fileSource;
@@ -151,16 +152,19 @@ namespace Testovoe.ViewModel
                       await Task.Run(async () =>
                       {
                           paramList = await FileService.GetParametersFromFileText(fileSource);
-                          int strCount = 120;
-                          if (strCount > paramList.Count) strCount = paramList.Count;
-                          for (int i = 0; i < strCount; i++)
+                          if (paramList != null)
                           {
-                              t.Append(paramList[i] + "; ");
-                              if (i == strCount-1)
-                                  t.Append("конец отображённого отрывка параметров...");
-                              
+                              int strCount = 120;
+                              if (strCount > paramList.Count) strCount = paramList.Count;
+                              for (int i = 0; i < strCount; i++)
+                              {
+                                  t.Append(paramList[i] + "; ");
+                                  if (i == strCount - 1)
+                                      t.Append("конец отображённого отрывка параметров...");
+
+                              }
+                              FileText = t.ToString();
                           }
-                          FileText = t.ToString();
                       });
                      
                  }));
@@ -214,6 +218,27 @@ namespace Testovoe.ViewModel
             }
         }
 
+
+        public CommandsMVVM DeleteAllRowsFromDB
+        {
+            get
+            {
+                return deleteAllRowsFromDB ??
+                  (deleteAllRowsFromDB = new CommandsMVVM(async obj =>
+                  {
+                      Services.EventManager.OnGetStateOperation(false);
+                      MessageBox.Show("Eсли параметров много то операция " +
+                          "займёт много времени, дождитесь сообщения об окончании");
+                      await Task.Run(async () =>
+                      {
+                         await DBManager.CleanTable();
+                      });
+                      MessageBox.Show("Таблица успешно очищена!");
+                      Services.EventManager.OnGetStateOperation(true);
+                  }));
+            }
+        }
+
         /// <summary>
         /// Получение таблички с БД
         /// </summary>
@@ -237,25 +262,37 @@ namespace Testovoe.ViewModel
             get
             {
                 return writeDataToDb ??
-                  (writeDataToDb = new CommandsMVVM(obj =>
+                  (writeDataToDb = new CommandsMVVM(async obj =>
                   {
+                      
                       List<Parameters> parametersListForDb = new List<Parameters>();
                       if (paramList != null)
                       {
-                          if (paramList.Count % 6 == 0)
+                          if (paramList.Count % columCount == 0)
                           {
-                              for (int i = 0; i < paramList.Count; i += 6)
+                              await Task.Run(async () =>
                               {
-                                  parametersListForDb.Add(new Parameters
+                                  
+                                  Services.EventManager.OnGetStateOperation(false);
+                                  MessageBox.Show("Параметры отправляются одним пакетом, если параметров много то операция займёт много времени, дождитесь сообщения об окончании");
+                                  for (int i = 0; i < paramList.Count; i += columCount)
                                   {
-                                      Speed_2_1000 = paramList[i],
-                                      Speed_10_1000 = paramList[i + 1],
-                                      Accel_2_1000 = paramList[i + 2],
-                                      Accel_10_1000 = paramList[i + 3],
-                                      Movement_2_1000 = paramList[i + 4],
-                                      Movement_10_1000 = paramList[i + 5]
-                                  });
-                              }
+                                      parametersListForDb.Add(new Parameters
+                                      {
+                                          Speed_2_1000 = paramList[i],
+                                          Speed_10_1000 = paramList[i + 1],
+                                          Accel_2_1000 = paramList[i + 2],
+                                          Accel_10_1000 = paramList[i + 3],
+                                          Movement_2_1000 = paramList[i + 4],
+                                          Movement_10_1000 = paramList[i + 5]
+                                      });
+
+                                  }
+                                  await DBManager.AddParametersData(parametersListForDb);
+
+                                  Services.EventManager.OnGetStateOperation(true);
+                                  MessageBox.Show("Успешно сохранено! Нажмите счиать с бд что бы подгрузить актульную информацию");
+                              });
                           }
                           else MessageBox.Show("Кол-во параметров считанных не кратно кол-ву столбцов",
                               "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);

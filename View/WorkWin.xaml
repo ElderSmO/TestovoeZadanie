@@ -42,9 +42,9 @@
             <DataGrid ItemsSource="{Binding ParametersCollection, UpdateSourceTrigger=PropertyChanged}" AutoGenerateColumns="True" SelectionMode="Single" IsReadOnly="True"/>
 
             <StackPanel Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                <Button  Command="{Binding GetDataFromDB}" Content="Прочитать данные с БД" Margin="0,6,10,6" Height="23" Width="150"/>
-                <Button Command="{Binding WriteDataToDb}" Content="Записать данные в БД" Margin="0,6,10,6" Height="23" Width="150"/>
-                <Button Command="{Binding DeleteAllRowsFromDB}" Content="Удалить все записи" Margin="0,6,10,6" Height="23" Width="120"/>
+                <Button  Command="{Binding GetDataFromDB}" IsEnabled="{Binding OperationContinue}" Content="Прочитать данные с БД" Margin="0,6,10,6" Height="23" Width="150"/>
+                <Button Command="{Binding WriteDataToDb}" IsEnabled="{Binding OperationContinue}" Content="Записать данные в БД" Margin="0,6,10,6" Height="23" Width="150"/>
+                <Button Command="{Binding DeleteAllRowsFromDB}" IsEnabled="{Binding OperationContinue}" Content="Удалить все записи" Margin="0,6,10,6" Height="23" Width="120"/>
             </StackPanel>
         </Grid>
 
