@@ -4,20 +4,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using Testovoe.DataBase;
 using Testovoe.Model;
 using Testovoe.Services;
 
 namespace Testovoe.ViewModel
 {
-    /// <summary>
-    /// View Model для окна WorkWinViewModel
-    /// </summary>
     public class WorkWinViewModel : INotifyPropertyChanged
     {
         private string readaedFileText; // Прочитанный текст с файла
@@ -26,11 +24,23 @@ namespace Testovoe.ViewModel
         CommandsMVVM selectFile;
         CommandsMVVM getDataFromDb;
         CommandsMVVM writeDataToDb;
+        CommandsMVVM generateFile;
 
-        private int progressBasValue;
+        private double progressBarValue;
         private string fileSource;
         private string fileText;
-        
+        private int maxProgressValue;
+
+        public int MaxProgressValue 
+        {
+            get => maxProgressValue;
+            set
+            {
+                maxProgressValue = value;
+                OnPropertyChanged("MaxProgressValue");
+            }
+        }
+
         public string FileText 
         {
             get => fileText;
@@ -53,28 +63,95 @@ namespace Testovoe.ViewModel
         }
 
 
-        public int ProgressBasValue 
+        public double ProgressBarValue 
         { 
-            get => progressBasValue;
+            get => progressBarValue;
             set
             {
-                progressBasValue = value;
-                OnPropertyChanged("ProgressBasValue");
+                progressBarValue = value;
+                OnPropertyChanged("ProgressBarValue");
             }
         }
 
         public ObservableCollection<Parameters> parametersCollection { get; set; }
         public WorkWinViewModel()
-        { }
+        {
+            Services.EventManager.maxProgresHandler += GetMaxValueProgress;
+            Services.EventManager.updateProgressHandler += UpdateProgressValue;
+            
+        }
 
+        void GetMaxValueProgress(int progressCount)
+        {
+            MaxProgressValue = progressCount;
+            Console.WriteLine(MaxProgressValue + "MaxProgressValue");
+        }
+
+        void UpdateProgressValue()
+        {
+                if (ProgressBarValue < MaxProgressValue)
+                {
+                    ProgressBarValue++;
+                    Console.WriteLine("Update");
+                }
+                else
+                {
+                    MessageBox.Show("Чтение закончено!");
+                    ProgressBarValue = 0;
+                }
+        }
+        /// <summary>
+        /// Чтение информации с файла
+        /// </summary>
         public CommandsMVVM ReadDataFromFile
         {
             get
             {
                 return readDataFromFile ??
-                  (readDataFromFile = new CommandsMVVM(obj =>
+                  (readDataFromFile = new CommandsMVVM(async obj =>
                   {
-                      MessageBox.Show("ReadFile");
+                      MessageBox.Show("Чтение!");
+                      var t = new StringBuilder();
+                      await Task.Run(async () =>
+                      {
+                          List<float> list = await FileService.GetParametersFromFileText(fileSource);
+                          for (int i = 0; i < list.Count; i++)
+                          {
+                              t.Append(list[i] + "; ");
+                              FileText = t.ToString();
+                          }
+                      });
+                     
+                 }));
+            }
+        }
+
+        public CommandsMVVM GenerateFile
+        {
+            get
+            {
+                return generateFile ??
+                  (generateFile = new CommandsMVVM(async obj =>
+                  {
+                      SaveFileDialog saveFileDialog = new SaveFileDialog();
+                      saveFileDialog.Filter = "Text files (*.txt)|*.txt";
+                      saveFileDialog.ShowDialog();
+                      if (saveFileDialog.FileName != null && saveFileDialog.FileName != "")
+                      {
+                          FileSource = saveFileDialog.FileName;
+                          await Task.Run(async() =>
+                          {
+                              await FileService.GenerateFile(FileSource);
+                          });
+                          
+                      }
+                      else
+                      {
+                          MessageBox.Show("Путь не был выбран!", "Ошибка",
+                              MessageBoxButton.OK, MessageBoxImage.Error);
+                          return;
+                      }
+
                   }));
             }
         }
@@ -92,13 +169,16 @@ namespace Testovoe.ViewModel
                       {
                               FileSource = openFileDialog.FileName;
                           
-                           if (fileSource != null || fileSource != "")
+                           if (fileSource != null && fileSource != "")
                           readaedFileText = System.IO.File.ReadAllText(fileSource);
                       });
                   }));
             }
         }
 
+        /// <summary>
+        /// Получение таблички с БД
+        /// </summary>
         public CommandsMVVM GetDataFromDB
         {
             get
@@ -106,11 +186,14 @@ namespace Testovoe.ViewModel
                 return getDataFromDb ??
                   (getDataFromDb = new CommandsMVVM(obj =>
                   {
-                      MessageBox.Show("ReadFile");
+                      parametersCollection = new ObservableCollection<Parameters>(DBManager.GetParametersData());
                   }));
             }
         }
 
+        /// <summary>
+        /// Запись в БД
+        /// </summary>
         public CommandsMVVM WriteDataToDb
         {
             get
