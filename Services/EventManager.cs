@@ -14,6 +14,9 @@ namespace Testovoe.Services
         public delegate void UpdateProgressValue();
         public static event UpdateProgressValue updateProgressHandler;
 
+        public delegate void StateOperation(bool state);
+        public static event StateOperation stateOperationHandler;
+
         public static void OnGetMaxProgressValue(int count)
         {
             maxProgresHandler?.Invoke(count);
@@ -22,6 +25,10 @@ namespace Testovoe.Services
         public static void OnUpdateProgress()
         {
             updateProgressHandler?.Invoke();
+        }
+        public static void OnGetStateOperation(bool state)
+        {
+            stateOperationHandler?.Invoke(state);
         }
 
     }

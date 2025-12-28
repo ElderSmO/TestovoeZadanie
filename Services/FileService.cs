@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Shapes;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -16,16 +17,21 @@ namespace Testovoe.Services
     /// </summary>
     public static class FileService
     {
+
         const string pattern = @"\b\d+\.\d+\b";
 
         static async Task<string> GetDataFromFile(string path)
         {
+            if (path == null || path == "")
+            {
+                return null;
+            }
             using (FileStream fstream = File.OpenRead(path))
             {
-                byte[] buffer = new byte[fstream.Length];
-                await fstream.ReadAsync(buffer, 0, buffer.Length);
-                Console.WriteLine(Encoding.Default.GetString(buffer));
-                return Encoding.Default.GetString(buffer);
+                    byte[] buffer = new byte[fstream.Length];
+                    await fstream.ReadAsync(buffer, 0, buffer.Length);
+                    return Encoding.Default.GetString(buffer);
+
             }
         }
         /// <summary>
@@ -35,6 +41,7 @@ namespace Testovoe.Services
         /// <returns></returns>
         public static async Task<List<float>> GetParametersFromFileText(string path)
         {
+            EventManager.OnGetStateOperation(false);
             string text = await GetDataFromFile(path);
             List<float> numbers = new List<float>();
             MatchCollection matches = Regex.Matches(text, pattern);
@@ -42,12 +49,11 @@ namespace Testovoe.Services
             foreach (Match match in matches)
             {
                 float number = float.Parse(match.Value, CultureInfo.InvariantCulture);
-                    
                     Console.WriteLine(number);
                     numbers.Add(number);
                     EventManager.OnUpdateProgress();
-                
             }
+            EventManager.OnGetStateOperation(true);
             return numbers;
         }
 
@@ -61,9 +67,11 @@ namespace Testovoe.Services
             Random random = new Random();
             using (FileStream fstream = new FileStream(path, FileMode.OpenOrCreate))
             {
+                EventManager.OnGetStateOperation(false);
                 double num;
                 StringBuilder sb = new StringBuilder("speed_2_1000; speed_10_1000;accel_1000, movement_2_1000; movement_10_1000;\r\n");
-                for (int i = 0; i < 10000000; i++)
+                EventManager.OnGetMaxProgressValue(10000008);
+                for (int i = 0; i < 10000008; i++)
                 {
                     if (i % 6 == 0)
                     {
@@ -73,12 +81,13 @@ namespace Testovoe.Services
                     num-= random.NextDouble();
 
                     sb.Append(num.ToString("F2", CultureInfo.InvariantCulture) + ";");
-                    
+                    EventManager.OnUpdateProgress();
 
                 }
                 byte[] buffer = Encoding.Default.GetBytes(sb.ToString());
                 await fstream.WriteAsync(buffer, 0, buffer.Length);
                 Console.WriteLine("Текст записан в файл");
+                EventManager.OnGetStateOperation(true);
             }
         }
 

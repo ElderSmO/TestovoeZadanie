@@ -5,28 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Testovoe.View"
         mc:Ignorable="d"
-              Title="MainWindow" Height="400" Width="640">
+              Title="MainWindow" Height="600" Width="900">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Margin="10">
-            <Button Command="{Binding GenerateFile}" Content="Сгенерировать файл" Width="150" Margin="0,10,0,10"/>
-            <StackPanel Background="#FF313131">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+            
+            <StackPanel Background="#FF313131" Grid.Row="0">
+                <Button Command="{Binding GenerateFile}" IsEnabled="{Binding OperationContinue}" Content="Сгенерировать файл" Width="200" Height="20" Margin="0,10,0,10"/>
                 <Label Margin="0,6,0,6" Content="Файл" HorizontalAlignment="Left"/>
                 <TextBlock Text="{Binding FileSource}" Foreground="White" Margin="7,6,0,6"/>
-                <Button Command="{Binding SelectFile}" Content="Выбрать файл" Width="100"  Margin="7,6,0,6" />
+                <Button Command="{Binding SelectFile}" IsEnabled="{Binding OperationContinue}" Content="Выбрать файл" Width="100"  Margin="7,6,0,6" />
             </StackPanel>
 
-            <StackPanel Margin="0,10,0,0" Background="#FF313131" VerticalAlignment="Stretch">
+            <StackPanel Margin="0,10,0,0" Background="#FF313131" VerticalAlignment="Stretch" Grid.Row="1">
                 <Label Margin="0,6,0,6" Content="Прочитать файл" HorizontalAlignment="Left"/>
-                <TextBlock Text="{Binding FileText}" MinHeight="50" Foreground="White" Margin="7,6,0,6" TextWrapping="Wrap" />
-                <Button Command="{Binding ReadDataFromFile}" Content="Прочитать файл" Width="100"  Margin="7,6,0,6" />
-                <ProgressBar Value="{Binding ProgressBarValue}" Minimum="0" Maximum="{Binding MaxProgressValue}" />
+                <TextBox IsReadOnly="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Text="{Binding FileText}" Margin="10" Height="230" VerticalScrollBarVisibility="Visible"/>
+                <Button Command="{Binding ReadDataFromFile}" IsEnabled="{Binding OperationContinue}" Content="Прочитать файл" Margin="7,6,0,6" Height="30" Width="150"/>
+                <ProgressBar Value="{Binding ProgressBarValue}" Minimum="0" Maximum="{Binding MaxProgressValue}" Margin="10" />
             </StackPanel>
-        </StackPanel>
+        </Grid>
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
@@ -34,11 +39,12 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <DataGrid AutoGenerateColumns="True" SelectionMode="Single" IsReadOnly="True"/>
+            <DataGrid ItemsSource="{Binding ParametersCollection, UpdateSourceTrigger=PropertyChanged}" AutoGenerateColumns="True" SelectionMode="Single" IsReadOnly="True"/>
 
             <StackPanel Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                <Button Content="Прочитать данные с БД" Margin="0,6,10,6" Height="23" Width="150"/>
+                <Button  Command="{Binding GetDataFromDB}" Content="Прочитать данные с БД" Margin="0,6,10,6" Height="23" Width="150"/>
                 <Button Command="{Binding WriteDataToDb}" Content="Записать данные в БД" Margin="0,6,10,6" Height="23" Width="150"/>
+                <Button Command="{Binding DeleteAllRowsFromDB}" Content="Удалить все записи" Margin="0,6,10,6" Height="23" Width="120"/>
             </StackPanel>
         </Grid>
 

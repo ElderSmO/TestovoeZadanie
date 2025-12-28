@@ -18,8 +18,8 @@ namespace Testovoe.ViewModel
 {
     public class WorkWinViewModel : INotifyPropertyChanged
     {
-        private string readaedFileText; // Прочитанный текст с файла
 
+        List<float> paramList;
         CommandsMVVM readDataFromFile;
         CommandsMVVM selectFile;
         CommandsMVVM getDataFromDb;
@@ -30,6 +30,18 @@ namespace Testovoe.ViewModel
         private string fileSource;
         private string fileText;
         private int maxProgressValue;
+        private bool operationContinue;
+        private ObservableCollection<Parameters> parametersCollection;
+
+        public bool OperationContinue
+        {
+            get => operationContinue;
+            set
+            {
+                operationContinue = value;
+                OnPropertyChanged("OperationContinue");
+            }
+        }
 
         public int MaxProgressValue 
         {
@@ -73,31 +85,56 @@ namespace Testovoe.ViewModel
             }
         }
 
-        public ObservableCollection<Parameters> parametersCollection { get; set; }
+        public ObservableCollection<Parameters> ParametersCollection
+        {
+            get => parametersCollection;
+            set
+            {
+                parametersCollection = value;
+                OnPropertyChanged("ParametersCollection");
+            }
+        }
         public WorkWinViewModel()
         {
+            OperationContinue = true;
             Services.EventManager.maxProgresHandler += GetMaxValueProgress;
             Services.EventManager.updateProgressHandler += UpdateProgressValue;
-            
+            Services.EventManager.stateOperationHandler += GetOperationState;
+            MaxProgressValue = 100;
+            ProgressBarValue = 0;
+
+
         }
 
+        /// <summary>
+        /// Получение состояния операции
+        /// </summary>
+        /// <param name="state">Флаг состояния</param>
+        void GetOperationState(bool state)
+        {
+            OperationContinue = state;
+        }
+
+        /// <summary>
+        /// Получение мак. значения для ProgressBar
+        /// </summary>
+        /// <param name="progressCount">Max value</param>
         void GetMaxValueProgress(int progressCount)
         {
+            
             MaxProgressValue = progressCount;
             Console.WriteLine(MaxProgressValue + "MaxProgressValue");
         }
-
+        
+        /// <summary>
+        /// Обновление прогреса при каждой итерации
+        /// </summary>
         void UpdateProgressValue()
         {
                 if (ProgressBarValue < MaxProgressValue)
                 {
                     ProgressBarValue++;
                     Console.WriteLine("Update");
-                }
-                else
-                {
-                    MessageBox.Show("Чтение закончено!");
-                    ProgressBarValue = 0;
                 }
         }
         /// <summary>
@@ -110,16 +147,20 @@ namespace Testovoe.ViewModel
                 return readDataFromFile ??
                   (readDataFromFile = new CommandsMVVM(async obj =>
                   {
-                      MessageBox.Show("Чтение!");
                       var t = new StringBuilder();
                       await Task.Run(async () =>
                       {
-                          List<float> list = await FileService.GetParametersFromFileText(fileSource);
-                          for (int i = 0; i < list.Count; i++)
+                          paramList = await FileService.GetParametersFromFileText(fileSource);
+                          int strCount = 120;
+                          if (strCount > paramList.Count) strCount = paramList.Count;
+                          for (int i = 0; i < strCount; i++)
                           {
-                              t.Append(list[i] + "; ");
-                              FileText = t.ToString();
+                              t.Append(paramList[i] + "; ");
+                              if (i == strCount-1)
+                                  t.Append("конец отображённого отрывка параметров...");
+                              
                           }
+                          FileText = t.ToString();
                       });
                      
                  }));
@@ -168,9 +209,6 @@ namespace Testovoe.ViewModel
                       await Task.Run(() =>
                       {
                               FileSource = openFileDialog.FileName;
-                          
-                           if (fileSource != null && fileSource != "")
-                          readaedFileText = System.IO.File.ReadAllText(fileSource);
                       });
                   }));
             }
@@ -186,7 +224,7 @@ namespace Testovoe.ViewModel
                 return getDataFromDb ??
                   (getDataFromDb = new CommandsMVVM(obj =>
                   {
-                      parametersCollection = new ObservableCollection<Parameters>(DBManager.GetParametersData());
+                      ParametersCollection = new ObservableCollection<Parameters>(DBManager.GetParametersData());
                   }));
             }
         }
@@ -201,15 +239,31 @@ namespace Testovoe.ViewModel
                 return writeDataToDb ??
                   (writeDataToDb = new CommandsMVVM(obj =>
                   {
-                      DBManager.AddParametersData(new Parameters()
+                      List<Parameters> parametersListForDb = new List<Parameters>();
+                      if (paramList != null)
                       {
-                          Speed_10_1000 = 2.2f,
-                          Accel_10_1000 = 1.2f,
-                          Accel_2_1000 = 2.1f,
-                          Speed_2_1000 = 3.1f,
-                          Movement_10_1000 = 4.1f,
-                          Movement_2_1000 = 2.3f
-                      });
+                          if (paramList.Count % 6 == 0)
+                          {
+                              for (int i = 0; i < paramList.Count; i += 6)
+                              {
+                                  parametersListForDb.Add(new Parameters
+                                  {
+                                      Speed_2_1000 = paramList[i],
+                                      Speed_10_1000 = paramList[i + 1],
+                                      Accel_2_1000 = paramList[i + 2],
+                                      Accel_10_1000 = paramList[i + 3],
+                                      Movement_2_1000 = paramList[i + 4],
+                                      Movement_10_1000 = paramList[i + 5]
+                                  });
+                              }
+                          }
+                          else MessageBox.Show("Кол-во параметров считанных не кратно кол-ву столбцов",
+                              "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                          
+                          
+                      }
+                      else MessageBox.Show("Вы не прочитали файл!", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
                   }));
             }
         }
